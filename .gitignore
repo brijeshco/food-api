@@ -1,0 +1,8 @@
+node_modules/
+*.log
+*.sqlite
+*.sqlite-*
+.env
+.env.local
+.env.*.local
+*.sqlite.*.tmp

@@ -1,0 +1,283 @@
+openapi: 3.1.0
+info:
+  title: Food Database API
+  version: 1.0.0
+  description: Indian-first mixed-catalog food nutrition API built from food_dataset_v3.csv.
+servers:
+  - url: http://localhost:3000
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: Service status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  dataset_rows:
+                    type: integer
+  /v1/search:
+    get:
+      summary: Search foods
+      parameters:
+        - $ref: '#/components/parameters/Query'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/CuisineType'
+        - $ref: '#/components/parameters/MealType'
+        - $ref: '#/components/parameters/Category'
+        - $ref: '#/components/parameters/Subcategory'
+        - $ref: '#/components/parameters/DishCategory'
+        - $ref: '#/components/parameters/Region'
+        - $ref: '#/components/parameters/IsVeg'
+        - $ref: '#/components/parameters/IsVegan'
+        - $ref: '#/components/parameters/IsJain'
+        - $ref: '#/components/parameters/DataQualityTier'
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+        '400':
+          description: Invalid query
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v1/foods:
+    get:
+      summary: Browse foods
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Offset'
+        - $ref: '#/components/parameters/CuisineType'
+        - $ref: '#/components/parameters/MealType'
+        - $ref: '#/components/parameters/Category'
+        - $ref: '#/components/parameters/Subcategory'
+        - $ref: '#/components/parameters/DishCategory'
+        - $ref: '#/components/parameters/Region'
+        - $ref: '#/components/parameters/IsVeg'
+        - $ref: '#/components/parameters/IsVegan'
+        - $ref: '#/components/parameters/IsJain'
+        - $ref: '#/components/parameters/DataQualityTier'
+      responses:
+        '200':
+          description: Food listing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrowseResponse'
+        '400':
+          description: Invalid pagination
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v1/foods/{food_id}:
+    get:
+      summary: Get food detail
+      parameters:
+        - name: food_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Food detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FoodRecord'
+        '404':
+          description: Food not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /v1/meta/filters:
+    get:
+      summary: Available filter values and dataset counts
+      responses:
+        '200':
+          description: Metadata for filters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetaResponse'
+components:
+  parameters:
+    Query:
+      name: q
+      in: query
+      required: true
+      schema:
+        type: string
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 20
+    Offset:
+      name: offset
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    CuisineType:
+      name: cuisine_type
+      in: query
+      schema:
+        type: string
+    MealType:
+      name: meal_type
+      in: query
+      schema:
+        type: string
+    Category:
+      name: category
+      in: query
+      schema:
+        type: string
+    Subcategory:
+      name: subcategory
+      in: query
+      schema:
+        type: string
+    DishCategory:
+      name: dish_category
+      in: query
+      schema:
+        type: string
+    Region:
+      name: region
+      in: query
+      schema:
+        type: string
+    IsVeg:
+      name: is_veg
+      in: query
+      schema:
+        type: boolean
+    IsVegan:
+      name: is_vegan
+      in: query
+      schema:
+        type: boolean
+    IsJain:
+      name: is_jain
+      in: query
+      schema:
+        type: boolean
+    DataQualityTier:
+      name: data_quality_tier
+      in: query
+      schema:
+        type: string
+        enum: [A, A-, B]
+  schemas:
+    FoodRecord:
+      type: object
+      properties:
+        food_id: { type: string }
+        food_name: { type: string }
+        display_name: { type: string }
+        canonical_name: { type: string }
+        slug: { type: string }
+        cuisine_type: { type: string }
+        region: { type: string }
+        category: { type: string }
+        subcategory: { type: string }
+        dish_category: { type: string }
+        meal_type: { type: string }
+        serving_name: { type: string }
+        serving_unit: { type: string }
+        serving_weight_g: { type: number }
+        calories_kcal: { type: number }
+        protein_g: { type: number }
+        carbs_g: { type: number }
+        fat_g: { type: number }
+        fiber_g: { type: number, nullable: true }
+        sugar_g: { type: number, nullable: true }
+        sodium_mg: { type: number, nullable: true }
+        calories_kcal_per_100g: { type: number, nullable: true }
+        protein_g_per_100g: { type: number, nullable: true }
+        carbs_g_per_100g: { type: number, nullable: true }
+        fat_g_per_100g: { type: number, nullable: true }
+        fiber_g_per_100g: { type: number, nullable: true }
+        sugar_g_per_100g: { type: number, nullable: true }
+        sodium_mg_per_100g: { type: number, nullable: true }
+        is_veg: { type: boolean }
+        is_vegan: { type: boolean }
+        is_jain: { type: boolean }
+        aliases:
+          type: array
+          items: { type: string }
+        tags:
+          type: array
+          items: { type: string }
+        data_quality_tier: { type: string }
+        verified: { type: boolean }
+        source_name: { type: string }
+        updated_at: { type: string }
+    SearchRecord:
+      allOf:
+        - $ref: '#/components/schemas/FoodRecord'
+        - type: object
+          properties:
+            match_score:
+              type: integer
+    SearchResponse:
+      type: object
+      properties:
+        total: { type: integer }
+        limit: { type: integer }
+        offset: { type: integer }
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchRecord'
+    BrowseResponse:
+      type: object
+      properties:
+        total: { type: integer }
+        limit: { type: integer }
+        offset: { type: integer }
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/FoodRecord'
+    MetaResponse:
+      type: object
+      properties:
+        dataset:
+          type: object
+          properties:
+            published_rows: { type: integer }
+            source_rows_out: { type: integer }
+            source_rows_in: { type: integer }
+        filters:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code: { type: string }
+            message: { type: string }

@@ -1,0 +1,48 @@
+{
+  "rows_in": 10946,
+  "rows_out": 10827,
+  "original_curated_rows_preserved": 116,
+  "nutrition_basis_counts": {
+    "reference_per_100g_scaled_to_serving": 10711,
+    "reinterpreted_original_per100g_to_serving": 66,
+    "preserved_existing": 50
+  },
+  "quality_tier_counts": {
+    "A-": 7067,
+    "B": 3710,
+    "A": 50
+  },
+  "cuisine_type_counts": {
+    "Indian": 10420,
+    "Western": 407
+  },
+  "meal_type_counts": {
+    "Main Meal": 6124,
+    "Ingredient/Staple": 2456,
+    "Dessert": 706,
+    "Beverage": 686,
+    "Breakfast": 470,
+    "Snack": 385
+  },
+  "new_columns": [
+    "canonical_name",
+    "slug",
+    "cuisine_type",
+    "meal_type",
+    "search_terms",
+    "nutrition_basis",
+    "nutrition_reference_key",
+    "data_quality_tier",
+    "calories_kcal_per_100g",
+    "protein_g_per_100g",
+    "carbs_g_per_100g",
+    "fat_g_per_100g",
+    "fiber_g_per_100g",
+    "sugar_g_per_100g",
+    "sodium_mg_per_100g",
+    "energy_density_bucket",
+    "protein_density_bucket",
+    "tags"
+  ],
+  "generated_at": "2026-03-27T15:59:45Z"
+}
