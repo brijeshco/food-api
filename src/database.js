@@ -5,7 +5,7 @@ import { parseCsv } from "./csv.js";
 import { DATASET_PATH, DATABASE_PATH, REPORT_PATH } from "./config.js";
 import { hasRequiredFields, normalizeRecord, serializeRecord } from "./foodRecord.js";
 
-export const DB_SCHEMA_VERSION = 2;
+export const DB_SCHEMA_VERSION = 3;
 
 const SCHEMA_SQL = `
   PRAGMA journal_mode = WAL;
@@ -54,12 +54,23 @@ const SCHEMA_SQL = `
     search_text_normalized TEXT NOT NULL
   );
 
+  CREATE TABLE search_misses (
+    query_key TEXT PRIMARY KEY,
+    original_query TEXT NOT NULL,
+    normalized_query TEXT NOT NULL,
+    filters_json TEXT NOT NULL,
+    hit_count INTEGER NOT NULL DEFAULT 1,
+    first_seen_at TEXT NOT NULL,
+    last_seen_at TEXT NOT NULL
+  );
+
   CREATE INDEX foods_cuisine_type_idx ON foods(cuisine_type);
   CREATE INDEX foods_region_idx ON foods(region);
   CREATE INDEX foods_category_idx ON foods(category);
   CREATE INDEX foods_meal_type_idx ON foods(meal_type);
   CREATE INDEX foods_quality_idx ON foods(data_quality_tier);
   CREATE INDEX foods_flags_idx ON foods(is_veg, is_vegan, is_jain);
+  CREATE INDEX search_misses_last_seen_idx ON search_misses(last_seen_at DESC);
 
   CREATE TABLE app_metadata (
     key TEXT PRIMARY KEY,

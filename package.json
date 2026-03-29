@@ -10,7 +10,8 @@
     "db:init": "node src/initDb.js",
     "db:refresh": "node src/initDb.js",
     "db:backup": "node src/backupDb.js",
-    "db:restore": "node src/restoreDb.js"
+    "db:restore": "node src/restoreDb.js",
+    "search-misses": "node src/listSearchMisses.js"
   },
   "engines": {
     "node": ">=24"

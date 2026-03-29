@@ -24,6 +24,29 @@ const FILTER_FIELDS = [
 ];
 
 const BOOLEAN_FILTER_FIELDS = new Set(["is_veg", "is_vegan", "is_jain"]);
+const UPSERT_SEARCH_MISS_SQL = `
+  INSERT INTO search_misses (
+    query_key,
+    original_query,
+    normalized_query,
+    filters_json,
+    hit_count,
+    first_seen_at,
+    last_seen_at
+  ) VALUES (
+    :query_key,
+    :original_query,
+    :normalized_query,
+    :filters_json,
+    1,
+    :first_seen_at,
+    :last_seen_at
+  )
+  ON CONFLICT(query_key) DO UPDATE SET
+    hit_count = hit_count + 1,
+    original_query = excluded.original_query,
+    last_seen_at = excluded.last_seen_at
+`;
 
 function buildWhereClause(filters) {
   const clauses = [];
@@ -65,10 +88,19 @@ function getMetadataValue(database, key) {
   return row?.value ?? null;
 }
 
+function normalizeFilters(filters) {
+  return Object.fromEntries(
+    Object.entries(filters)
+      .filter(([, value]) => value !== undefined && value !== null && value !== "")
+      .sort(([left], [right]) => left.localeCompare(right))
+  );
+}
+
 export class FoodRepository {
   constructor(database, report) {
     this.database = database;
     this.report = report;
+    this.upsertSearchMiss = this.database.prepare(UPSERT_SEARCH_MISS_SQL);
   }
 
   static async load() {
@@ -146,6 +178,21 @@ export class FoodRepository {
     };
   }
 
+  recordSearchMiss(query, normalizedQuery, filters) {
+    const normalizedFilters = normalizeFilters(filters);
+    const filtersJson = JSON.stringify(normalizedFilters);
+    const timestamp = new Date().toISOString();
+
+    this.upsertSearchMiss.run({
+      query_key: `${normalizedQuery}::${filtersJson}`,
+      original_query: query.trim(),
+      normalized_query: normalizedQuery,
+      filters_json: filtersJson,
+      first_seen_at: timestamp,
+      last_seen_at: timestamp
+    });
+  }
+
   search({ query, limit, offset, filters }) {
     const normalizedQuery = normalizeText(query);
     const queryTokens = tokenize(query);
@@ -177,6 +224,10 @@ export class FoodRepository {
 
         return left.row.food_name.localeCompare(right.row.food_name);
       });
+
+    if (filtered.length === 0 && normalizedQuery) {
+      this.recordSearchMiss(query, normalizedQuery, filters);
+    }
 
     const paginated = filtered.slice(offset, offset + limit).map(({ row, score }) => ({
       ...toPublicRecord(row),

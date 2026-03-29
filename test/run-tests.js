@@ -6,7 +6,7 @@ import { once } from "node:events";
 
 process.env.DATABASE_PATH = process.env.DATABASE_PATH ?? path.resolve("D:/api/test/.tmp-food-database.sqlite");
 
-const [{ DATABASE_PATH }, { DB_SCHEMA_VERSION }, { createApp }, { FoodRepository }] = await Promise.all([
+const [{ DATABASE_PATH }, { DB_SCHEMA_VERSION, openDatabase }, { createApp }, { FoodRepository }] = await Promise.all([
   import("../src/config.js"),
   import("../src/database.js"),
   import("../src/app.js"),
@@ -129,6 +129,16 @@ async function main() {
     assert.ok(recipeSearchResponse.body.items.every((item) => !/recipe/.test((item.canonical_name ?? "").toLowerCase())));
     assert.ok(recipeSearchResponse.body.items.every((item) => !/(^|-)recipe(?=-|$)/.test((item.slug ?? "").toLowerCase())));
     logSuccess("recipe is stripped from published food names");
+
+    const missResponse = await request(baseUrl, "/v1/search?q=qxzjv%20blorpt%20flarn&limit=5");
+    assert.equal(missResponse.status, 200);
+    assert.equal(missResponse.body.total, 0);
+    const database = openDatabase();
+    const missRow = database.prepare("SELECT original_query, hit_count FROM search_misses WHERE normalized_query = ?").get("qxzjv blorpt flarn");
+    database.close();
+    assert.equal(missRow.original_query, "qxzjv blorpt flarn");
+    assert.equal(missRow.hit_count, 1);
+    logSuccess("zero-result searches are recorded for later catalog updates");
 
     const rateLimitedServer = http.createServer(
       createApp(repository, {
